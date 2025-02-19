@@ -1,6 +1,6 @@
 ﻿using Microsoft.Windows.AppLifecycle;
 
-namespace FlashNotifyService;
+namespace FlashNotify;
 
 public static class RestartService
 {

@@ -1,12 +1,13 @@
-﻿using Microsoft.UI.Xaml;
+﻿using FlashNotify;
+using Microsoft.UI.Xaml;
 
-namespace FlashNotify;
+namespace FlashNotifyService;
 
 public partial class App : Application
 {
     public App()
     {
-        this.InitializeComponent();
+        // 不调用 InitializeComponent 或者确保其内容最小化
         this.UnhandledException += App_UnhandledException;
     }
 
@@ -15,20 +16,18 @@ public partial class App : Application
         RegistryManager.CheckAndSetDefaultSettings();
         RegistryManager.SetAutoStart();
 
-        MainWindow = new MainWindow();
-        MainWindow.Activate();
+        // 不创建 MainWindow
+        // MainWindow = new MainWindow();
+        // MainWindow.Activate();
 
         // 启动通知监听器
         var listener = new ToastNotificationListener();
         listener.StartListening();
     }
 
-    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    private void App_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         e.Handled = true;
-        // 使用重启服务
         RestartService.RestartApplication();
     }
-
-    public static Window MainWindow { get; private set; }
 }
