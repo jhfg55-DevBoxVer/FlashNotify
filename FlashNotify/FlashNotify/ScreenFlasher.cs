@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System.Threading.Tasks;
 
-namespace FlashNotifyService;
+namespace FlashNotify;
 
 public static class ScreenFlasher
 {

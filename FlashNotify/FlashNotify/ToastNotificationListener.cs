@@ -49,8 +49,37 @@ public class ToastNotificationListener
 
     private string GetNotificationPriority(Windows.UI.Notifications.UserNotification notification)
     {
-        // 这里可以根据通知内容或通知类型来确定优先级
-        // 由于示例中未指定具体的判定方法，这里默认返回 "Medium"
-        return "Medium";
+        string rawText = string.Empty;
+
+        // 尝试从通知 XML 中提取文本内容
+        try
+        {
+            var doc = notification.Notification.Content;
+            var textNodes = doc.GetElementsByTagName("text");
+            foreach (var node in textNodes)
+            {
+                rawText += node.InnerText + " ";
+            }
+        }
+        catch (Exception ex)
+        {
+            // 此处可记录异常或根据需要处理
+            Console.WriteLine($"解析通知内容时发生异常: {ex.Message}");
+        }
+
+        // 根据通知内容判断优先级
+        if (rawText.IndexOf("紧急", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            rawText.IndexOf("立即", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return "High";
+        }
+        else if (rawText.IndexOf("提示", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return "Low";
+        }
+        else
+        {
+            return "Medium";
+        }
     }
 }
