@@ -6,10 +6,12 @@ namespace FlashNotify;
 public class RegistryManager
 {
     private const string RegistryPath = @"SOFTWARE\FlashNotifyService";
+    private const string LogFile = "FlashNotify.log";
 
     public static void CheckAndSetDefaultSettings()
     {
-        using var key = Registry.LocalMachine.OpenSubKey(RegistryPath, true) ?? Registry.LocalMachine.CreateSubKey(RegistryPath);
+        using var key = Registry.LocalMachine.OpenSubKey(RegistryPath, true)
+                          ?? Registry.LocalMachine.CreateSubKey(RegistryPath);
         if (key.GetSubKeyNames().Length == 0)
         {
             // 写入默认设置
@@ -32,8 +34,7 @@ public class RegistryManager
         globalKey.SetValue("FlashlightOpacity", 0.3);
     }
 
-
-
+    // 已删除通知优先级相关参数
     public static Settings GetSettingsForApp(string appId, string priority)
     {
         var settings = new Settings();
@@ -50,9 +51,19 @@ public class RegistryManager
         settings.FlashlightFlashCount = Convert.ToInt32(globalKey.GetValue("FlashlightFlashCount", 2));
         settings.FlashlightDuration = Convert.ToInt32(globalKey.GetValue("FlashlightDuration", 300));
 
-        
-
-        // TODO: 读取应用特定设置，并覆盖上述设置
+        // 读取应用特定设置，并覆盖上述设置
+        using var appKey = key.OpenSubKey(appId);
+        if (appKey != null)
+        {
+            settings.EnableScreenFlash = Convert.ToBoolean(appKey.GetValue("EnableScreenFlash", settings.EnableScreenFlash));
+            settings.FlashColor = appKey.GetValue("FlashColor", settings.FlashColor).ToString();
+            settings.FlashCount = Convert.ToInt32(appKey.GetValue("FlashCount", settings.FlashCount));
+            settings.FlashInterval = Convert.ToInt32(appKey.GetValue("FlashInterval", settings.FlashInterval));
+            settings.FlashOpacity = Convert.ToDouble(appKey.GetValue("FlashOpacity", settings.FlashOpacity));
+            settings.EnableFlashlight = Convert.ToBoolean(appKey.GetValue("EnableFlashlight", settings.EnableFlashlight));
+            settings.FlashlightFlashCount = Convert.ToInt32(appKey.GetValue("FlashlightFlashCount", settings.FlashlightFlashCount));
+            settings.FlashlightDuration = Convert.ToInt32(appKey.GetValue("FlashlightDuration", settings.FlashlightDuration));
+        }
 
         return settings;
     }
@@ -63,10 +74,41 @@ public class RegistryManager
         using var key = Registry.LocalMachine.OpenSubKey(policyPath, true);
         if (key != null)
         {
-            // 添加启动脚本或程序
-            // 由于组策略的复杂性，这里仅作示例，实际可能需要使用更高级的方法来修改组策略
+            // 获取当前应用的完整路径
+            var appPath = System.Reflection.Assembly.GetEntryAssembly()?.Location;
+            if (string.IsNullOrEmpty(appPath))
+            {
+                Logger.Log("无法获取当前应用路径，自动启动配置失败。");
+                return;
+            }
+
+            // 使用子项 "0" 表示第一个登录脚本
+            using var scriptKey = key.CreateSubKey("0");
+            if (scriptKey != null)
+            {
+                // 设置启动脚本路径和参数（假设无额外参数，且 Order 指定执行顺序）
+                scriptKey.SetValue("Script", appPath);
+                scriptKey.SetValue("Parameters", "");
+                scriptKey.SetValue("Order", 0);
+            }
+
+            // 设置同步运行登录脚本（添加或更新 RunLogonScriptSynchronous 值为 1）
+            using var systemKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", true);
+            if (systemKey != null)
+            {
+                systemKey.SetValue("RunLogonScriptSynchronous", 1, RegistryValueKind.DWord);
+            }
+            else
+            {
+                Logger.Log($"无法打开注册表路径: SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System");
+            }
+        }
+        else
+        {
+            Logger.Log($"无法打开注册表路径: {policyPath}");
         }
     }
+
 }
 
 public class Settings
@@ -79,4 +121,5 @@ public class Settings
     public bool EnableFlashlight { get; set; }
     public int FlashlightFlashCount { get; set; }
     public int FlashlightDuration { get; set; }
+    public double FlashlightOpacity { get; set; }
 }
