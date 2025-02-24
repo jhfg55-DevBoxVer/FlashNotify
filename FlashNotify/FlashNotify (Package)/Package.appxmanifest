@@ -16,7 +16,7 @@
 
   <Properties>
     <DisplayName>FlashNotify (Package)</DisplayName>
-    <PublisherDisplayName>hufor</PublisherDisplayName>
+    <PublisherDisplayName>jhfg55</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
   </Properties>
 
@@ -42,6 +42,10 @@
         <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png" />
         <uap:SplashScreen Image="Images\SplashScreen.png" />
       </uap:VisualElements>
+		<Extensions>
+			<!-- 声明 FullTrustProcess 扩展 -->
+			<Extension Category="windows.fullTrustProcess" Executable="$targetnametoken$.exe"/>
+		</Extensions>
     </Application>
   </Applications>
 
