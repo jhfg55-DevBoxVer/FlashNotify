@@ -30,28 +30,9 @@ public class RegistryManager
         globalKey.SetValue("FlashlightFlashCount", 2);
         globalKey.SetValue("FlashlightDuration", 300);
         globalKey.SetValue("FlashlightOpacity", 0.3);
-        globalKey.SetValue("UseUnifiedSettings", true);
-
-        // Priority设置
-        using var priorityKey = key.CreateSubKey("Priority");
-
-        SetPrioritySettings(priorityKey, "High", 0.7);
-        SetPrioritySettings(priorityKey, "Medium", 0.3);
-        SetPrioritySettings(priorityKey, "Low", 0.3);
     }
 
-    private static void SetPrioritySettings(RegistryKey parentKey, string priority, double opacity)
-    {
-        using var key = parentKey.CreateSubKey(priority);
-        key.SetValue("FlashColor", "#FFFFE0");
-        key.SetValue("FlashCount", 2);
-        key.SetValue("FlashInterval", 300);
-        key.SetValue("Opacity", opacity);
-        key.SetValue("EnableScreenFlash", true);
-        key.SetValue("EnableFlashlight", false);
-        key.SetValue("FlashlightFlashCount", 2);
-        key.SetValue("FlashlightDuration", 300);
-    }
+
 
     public static Settings GetSettingsForApp(string appId, string priority)
     {
@@ -69,18 +50,7 @@ public class RegistryManager
         settings.FlashlightFlashCount = Convert.ToInt32(globalKey.GetValue("FlashlightFlashCount", 2));
         settings.FlashlightDuration = Convert.ToInt32(globalKey.GetValue("FlashlightDuration", 300));
 
-        var useUnifiedSettings = Convert.ToBoolean(globalKey.GetValue("UseUnifiedSettings", true));
-
-        if (!useUnifiedSettings)
-        {
-            // 读取Priority设置
-            using var priorityKey = key.OpenSubKey($@"Priority\{priority}");
-            if (priorityKey != null)
-            {
-                settings.FlashOpacity = Convert.ToDouble(priorityKey.GetValue("Opacity", settings.FlashOpacity));
-                // 读取其他优先级特定设置
-            }
-        }
+        
 
         // TODO: 读取应用特定设置，并覆盖上述设置
 
